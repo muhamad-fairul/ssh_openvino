@@ -5,6 +5,18 @@ SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 #ENV http_proxy=http://proxy.jf.intel.com:911
 #ENV https_proxy=http://proxy.jf.intel.com:911
 #ENV no_proxy=10.221.123.161
+RUN apt-get update && apt-get install -y openssh-server
+RUN apt-get install -y git build-essential
+RUN mkdir /var/run/sshd
+RUN echo 'root:Intel123!' | chpasswd
+RUN sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+
+ENV NOTVISIBLE="in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
 # Creating user openvino
 RUN useradd -ms /bin/bash openvino && \
     chown openvino -R /home/openvino
@@ -78,5 +90,9 @@ RUN echo 'docker ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 USER docker
 WORKDIR ${INTEL_OPENVINO_DIR}
 WORKDIR ${INTEL_OPENVINO_DIR}/deployment_tools/demo
-RUN sudo ./demo_benchmark_app.sh
+RUN sudo ./demo_benchmark_app.sh >> result.txt
+RUN cat result.txt
 CMD ["/bin/bash"]
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
