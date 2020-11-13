@@ -69,7 +69,7 @@ RUN ${PYTHON} -m pip install --no-cache-dir setuptools && \
     find "${INTEL_OPENVINO_DIR}/" -type f -name "*requirements*.*" -not -path "*/post_training_optimization_toolkit/*" -not -name "*windows.txt"  -not -name "*ubuntu16.txt" -not -path "*/python3*/*" -not -path "*/python2*/*" -exec ${PYTHON} -m pip install --no-cache-dir -r "{}" \;
 WORKDIR ${INTEL_OPENVINO_DIR}/deployment_tools/open_model_zoo/tools/accuracy_checker
 RUN apt install -y python-pip
-RUN pip install --yes sentencepiece==0.1.82
+RUN pip install sentencepiece==0.1.82
 RUN source ${INTEL_OPENVINO_DIR}/bin/setupvars.sh && \
     ${PYTHON} -m pip install --no-cache-dir -r ${INTEL_OPENVINO_DIR}/deployment_tools/open_model_zoo/tools/accuracy_checker/requirements.in && \
     ${PYTHON} ${INTEL_OPENVINO_DIR}/deployment_tools/open_model_zoo/tools/accuracy_checker/setup.py install
