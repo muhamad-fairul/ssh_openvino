@@ -91,7 +91,7 @@ USER docker
 WORKDIR ${INTEL_OPENVINO_DIR}
 WORKDIR ${INTEL_OPENVINO_DIR}/deployment_tools/demo
 RUN sudo ./demo_benchmark_app.sh >> result.txt
-RUN cat result.txt
+RUN sudo cat result.txt
 CMD ["/bin/bash"]
 
 EXPOSE 22
