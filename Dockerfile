@@ -5,18 +5,6 @@ SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 #ENV http_proxy=http://proxy.jf.intel.com:911
 #ENV https_proxy=http://proxy.jf.intel.com:911
 #ENV no_proxy=10.221.123.161
-RUN apt-get update && apt-get install -y openssh-server
-RUN apt-get install -y git build-essential
-RUN mkdir /var/run/sshd
-RUN echo 'root:Intel123!' | chpasswd
-RUN sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
-
-# SSH login fix. Otherwise user is kicked off after login
-RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
-
-ENV NOTVISIBLE="in users profile"
-RUN echo "export VISIBLE=now" >> /etc/profile
-
 # Creating user openvino
 RUN useradd -ms /bin/bash openvino && \
     chown openvino -R /home/openvino
@@ -68,8 +56,6 @@ RUN ${PYTHON} -m pip install --no-cache-dir setuptools && \
     find "${INTEL_OPENVINO_DIR}/" -type f -name "*requirements*.*" -path "*/${PYTHON}/*" -exec ${PYTHON} -m pip install --no-cache-dir -r "{}" \; && \
     find "${INTEL_OPENVINO_DIR}/" -type f -name "*requirements*.*" -not -path "*/post_training_optimization_toolkit/*" -not -name "*windows.txt"  -not -name "*ubuntu16.txt" -not -path "*/python3*/*" -not -path "*/python2*/*" -exec ${PYTHON} -m pip install --no-cache-dir -r "{}" \;
 WORKDIR ${INTEL_OPENVINO_DIR}/deployment_tools/open_model_zoo/tools/accuracy_checker
-RUN apt install -y python-pip
-RUN pip install sentencepiece==0.1.82
 RUN source ${INTEL_OPENVINO_DIR}/bin/setupvars.sh && \
     ${PYTHON} -m pip install --no-cache-dir -r ${INTEL_OPENVINO_DIR}/deployment_tools/open_model_zoo/tools/accuracy_checker/requirements.in && \
     ${PYTHON} ${INTEL_OPENVINO_DIR}/deployment_tools/open_model_zoo/tools/accuracy_checker/setup.py install
@@ -87,12 +73,23 @@ RUN find "${INTEL_OPENVINO_DIR}/" -name "*.*sh" -type f -exec dos2unix {} \;
 ADD IRs /home/openvino/IRs
 RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 RUN echo 'docker ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
-USER docker
+USER root
 WORKDIR ${INTEL_OPENVINO_DIR}
 WORKDIR ${INTEL_OPENVINO_DIR}/deployment_tools/demo
-RUN ./demo_benchmark_app.sh > result.txt
-RUN cat result.txt
-CMD ["/bin/bash"]
+RUN touch /home/openvino/result.txt
+RUN ./demo_benchmark_app.sh >> /home/openvino/result.txt
+RUN cat /home/openvino/result.txt
+USER root
+RUN apt-get update && apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+RUN echo 'root:Intel123!' | chpasswd
+RUN sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+
+ENV NOTVISIBLE="in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
 
 EXPOSE 22
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/bin/bash"]
