@@ -1,5 +1,16 @@
 FROM ubuntu:18.04
 USER root
+RUN apt-get update && apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+RUN echo 'root:Intel123!' | chpasswd
+RUN sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+
+ENV NOTVISIBLE="in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
 WORKDIR /
 SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 #ENV http_proxy=http://proxy.jf.intel.com:911
@@ -79,17 +90,17 @@ WORKDIR ${INTEL_OPENVINO_DIR}/deployment_tools/demo
 RUN touch /home/openvino/result.txt
 RUN ./demo_benchmark_app.sh >> /home/openvino/result.txt
 RUN cat /home/openvino/result.txt
-USER root
-RUN apt-get update && apt-get install -y openssh-server
-RUN mkdir /var/run/sshd
-RUN echo 'root:Intel123!' | chpasswd
-RUN sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+#USER root
+#RUN apt-get update && apt-get install -y openssh-server
+#RUN mkdir /var/run/sshd
+#RUN echo 'root:Intel123!' | chpasswd
+#RUN sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
 
 # SSH login fix. Otherwise user is kicked off after login
-RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+#RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
 
-ENV NOTVISIBLE="in users profile"
-RUN echo "export VISIBLE=now" >> /etc/profile
+#ENV NOTVISIBLE="in users profile"
+#RUN echo "export VISIBLE=now" >> /etc/profile
 
 EXPOSE 22
 CMD ["/bin/bash"]
