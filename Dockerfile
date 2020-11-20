@@ -8,9 +8,6 @@ SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 # Creating user openvino
 RUN useradd -ms /bin/bash openvino && \
     chown openvino -R /home/openvino
-    
-RUN apt install -y python3-pip
-RUN pip install -y sentencepiece==0.1.82
 ARG DEPENDENCIES="autoconf \
                   automake \
                   build-essential \
@@ -76,6 +73,7 @@ RUN find "${INTEL_OPENVINO_DIR}/" -name "*.*sh" -type f -exec dos2unix {} \;
 ADD IRs /home/openvino/IRs
 RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 RUN echo 'docker ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+RUN pip install -y sentencepiece==0.1.82
 USER root
 WORKDIR ${INTEL_OPENVINO_DIR}
 WORKDIR ${INTEL_OPENVINO_DIR}/deployment_tools/demo
