@@ -82,6 +82,7 @@ WORKDIR ${INTEL_OPENVINO_DIR}/deployment_tools/demo
 RUN touch /home/openvino/result.txt
 RUN ./demo_benchmark_app.sh >> /home/openvino/result.txt
 RUN cat /home/openvino/result.txt
+RUN which gst-launch-1.0 #fairul
 USER root
 RUN apt-get update && apt-get install -y openssh-server
 RUN mkdir /var/run/sshd
