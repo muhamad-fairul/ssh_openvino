@@ -9,8 +9,8 @@ SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 RUN useradd -ms /bin/bash openvino && \
     chown openvino -R /home/openvino
     
-RUN apt-get install -y python3-pip
-RUN pip install sentencepiece==0.1.82
+RUN apt install -y python3-pip
+RUN pip install -y sentencepiece==0.1.82
 ARG DEPENDENCIES="autoconf \
                   automake \
                   build-essential \
